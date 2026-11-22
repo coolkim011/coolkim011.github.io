@@ -47,6 +47,7 @@ python3 -m http.server 8000
 
 ### 배포
 
+- **라이브 주소**: <https://coolkim011.github.io/daiso-shelf-simulator/> (GitHub Pages, 올린 시점: 2026-11-22)
 - **GitHub Pages**: 저장소에 이 폴더를 올리고 Settings → Pages → Branch `main` / `/root`.
 - **Vercel**: `vercel` 실행 후 프레임워크 프리셋을 `Other`, 출력 디렉터리를 이 폴더로 지정. 빌드 명령 없음.
 - 모든 경로가 상대 경로라 하위 디렉터리 배포도 그대로 동작합니다.
