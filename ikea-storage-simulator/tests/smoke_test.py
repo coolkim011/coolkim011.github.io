@@ -507,6 +507,31 @@ def main():
   var barIdx = kids.indexOf(bar0), statIdx = kids.indexOf(document.getElementById('stats'));
   ok('선택 툴바가 통계보다 위', barIdx >= 0 && statIdx > barIdx, barIdx + '/' + statIdx);
 
+  // 휴대폰 폭(무대 340px)에서도 같은 배율·프레임·얇은 라벨이 유지된다
+  var stageM = document.getElementById('stage');
+  var prevW = stageM.clientWidth;
+  stageM.clientWidth = 340;
+  fireWin('resize', {});
+  var sBoxM = document.getElementById('shelfBox');
+  var frameM = sBoxM.querySelector('.shelf-frame');
+  var nodeM = sBoxM.querySelector('.item');
+  var scaleM = parseFloat(frameM.style.width) / 76;
+  ok('좁은 화면 프레임 비율 유지',
+     Math.abs(parseFloat(frameM.style.width) / parseFloat(frameM.style.height) - 76 / 30) < 0.02,
+     frameM.style.width + 'x' + frameM.style.height);
+  ok('좁은 화면에서도 1cm = 같은 배율',
+     !!nodeM && Math.abs((parseFloat(nodeM.style.width) + 1) - 55.4 * scaleM) < 0.6 &&
+     Math.abs((parseFloat(nodeM.style.height) + 1) - 2.5 * scaleM) < 0.6,
+     scaleM.toFixed(2));
+  ok('좁은 화면에서도 얇은 라벨', !!nodeM && !!nodeM.querySelector('.it-name'),
+     nodeM ? nodeM.className : '');
+  ok('좁은 화면에서도 치수 라벨',
+     txtOf(sBoxM.querySelector('.dim-top')) === '폭 76cm' &&
+     txtOf(sBoxM.querySelector('.dim-left')) === '높이 30cm',
+     txtOf(sBoxM.querySelector('.dim-bottom')));
+  stageM.clientWidth = prevW;
+  fireWin('resize', {});
+
   // 쇼핑 리스트 캔버스
   fire(document.getElementById('clearBtn'), 'click');
   wEl.value = '33'; dEl.value = '39'; hEl.value = '33';
