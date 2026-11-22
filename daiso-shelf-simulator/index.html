@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>다이소 바구니 선반 시뮬레이터</title>
+<meta name="description" content="선반 규격을 입력하면 다이소 수납 바구니가 딱 맞는 순서로 추천됩니다. 3면 미리보기로 배치를 확인하고 품번 영수증을 저장하세요." />
+<meta name="theme-color" content="#FAF7F2" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232C2520'/%3E%3Cpath d='M16 26h32v20a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4z' fill='none' stroke='%23FAF7F2' stroke-width='3'/%3E%3Cpath d='M16 34h32M26 26v-6M38 26v-6' stroke='%23FAF7F2' stroke-width='3' fill='none'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<a class="skip" href="#catalog">상품 목록으로 건너뛰기</a>
+
+<header class="site-head">
+  <div class="wrap head-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="26" height="26"><path d="M5 12h22v13a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 19h22M12 12V6M20 12V6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </span>
+      <div>
+        <h1>다이소 바구니 선반 시뮬레이터</h1>
+        <p class="tagline">선반 규격만 넣으면, 딱 맞는 다이소 수납 바구니를 골라드려요</p>
+      </div>
+    </div>
+    <div class="head-meta">
+      <span class="pill" id="dataPill">다이소몰 실데이터 · <b id="dataCount">0</b>개</span>
+      <button class="ghost-btn" id="openAbout" type="button">데이터 안내</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- 1. 선반 규격 -->
+  <section class="card shelf-card" aria-labelledby="shelfTitle">
+    <div class="card-head">
+      <h2 id="shelfTitle"><span class="step">1</span> 선반 규격</h2>
+      <p class="hint">줄자로 안쪽 폭 · 깊이 · 높이를 재어 넣어주세요.</p>
+    </div>
+
+    <div class="shelf-inputs">
+      <label class="field">
+        <span class="field-label">폭 <em>가로</em></span>
+        <span class="input-wrap"><input id="shelfW" type="number" inputmode="decimal" min="10" max="300" step="0.5" value="60" /><span class="unit">cm</span></span>
+      </label>
+      <label class="field">
+        <span class="field-label">안쪽 깊이 <em>앞뒤</em></span>
+        <span class="input-wrap"><input id="shelfD" type="number" inputmode="decimal" min="8" max="150" step="0.5" value="35" /><span class="unit">cm</span></span>
+      </label>
+      <label class="field">
+        <span class="field-label">높이 <em>칸 높이</em></span>
+        <span class="input-wrap"><input id="shelfH" type="number" inputmode="decimal" min="8" max="150" step="0.5" value="40" /><span class="unit">cm</span></span>
+      </label>
+    </div>
+
+    <div class="preset-row" role="group" aria-label="자주 쓰는 선반 프리셋">
+      <span class="preset-label">프리셋 <em>폭×깊이×높이</em></span>
+      <button class="chip" type="button" data-preset="60,35,40">60 × 35 × 40</button>
+      <button class="chip" type="button" data-preset="60,30,35">60 × 30 × 35</button>
+      <button class="chip" type="button" data-preset="80,35,40">80 × 35 × 40</button>
+      <button class="chip" type="button" data-preset="90,40,45">90 × 40 × 45</button>
+      <button class="chip" type="button" data-preset="45,30,30">45 × 30 × 30</button>
+      <button class="chip" type="button" data-preset="120,40,45">120 × 40 × 45</button>
+    </div>
+  </section>
+
+  <!-- 2. 선반 미리보기 -->
+  <section class="card preview-card" aria-labelledby="previewTitle">
+    <div class="card-head row-head">
+      <h2 id="previewTitle"><span class="step">2</span> 선반 미리보기</h2>
+      <div class="view-tabs" role="tablist" aria-label="보는 방향">
+        <button role="tab" class="tab is-on" data-view="front" aria-selected="true">앞에서</button>
+        <button role="tab" class="tab" data-view="side" aria-selected="false">옆에서</button>
+        <button role="tab" class="tab" data-view="top" aria-selected="false">위에서</button>
+      </div>
+    </div>
+
+    <div class="stage-tools">
+      <div class="stage-note" id="stageNote">바구니를 끌어 옮기고, 위에 쌓아보세요.</div>
+      <div class="tool-group">
+        <button class="ghost-btn" id="undoBtn" type="button" disabled>되돌리기</button>
+        <button class="ghost-btn" id="clearBtn" type="button" disabled>전부 내리기</button>
+      </div>
+    </div>
+
+    <div class="stage-wrap">
+      <div class="stage" id="stage" data-view="front" aria-label="선반 배치 미리보기">
+        <div class="stage-shelf" id="shelfBox"><div class="stage-grid" id="stageGrid"></div></div>
+        <div class="stage-empty" id="stageEmpty">
+          <p>아직 선반이 비어 있어요</p>
+          <span>아래 추천에서 <b>선반에 담기</b>를 눌러보세요</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats" id="stats" aria-live="polite">
+      <div class="stat" title="바닥에 놓인 바구니 중 가장 멀리까지 쓴 폭을 기준으로 계산합니다"><span class="stat-label">남은 폭</span><b id="statWidth">60</b><span class="stat-unit">cm</span></div>
+      <div class="stat" title="가장 깊은 바구니를 기준으로 남는 앞뒤 공간입니다. 앞뒤 2줄을 쓰면 0cm가 됩니다"><span class="stat-label">깊이 여유</span><b id="statDepth">35</b><span class="stat-unit">cm</span></div>
+      <div class="stat"><span class="stat-label">개수 · 합계</span><b id="statCount">0</b><span class="stat-unit">개 · <span id="statTotal">0</span>원</span></div>
+      <div class="stat" title="쌓은 것까지 포함해 가장 높이 올라간 지점입니다"><span class="stat-label">가장 높은 칸</span><b id="statTop">0</b><span class="stat-unit">cm · 위로 <span id="statLeft">40</span>cm</span></div>
+    </div>
+
+    <div class="stage-actions">
+      <button class="primary-btn" id="receiptOpenBtn" type="button" disabled>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="2"/></svg>
+        품번 영수증 만들기
+      </button>
+    </div>
+  </section>
+
+  <!-- 3. 추천 카탈로그 -->
+  <section class="card catalog-card" id="catalog" aria-labelledby="catalogTitle">
+    <div class="card-head row-head">
+      <h2 id="catalogTitle"><span class="step">3</span> 맞춤 추천</h2>
+      <div class="sort-wrap">
+        <label class="toggle"><input type="checkbox" id="onlyFit" checked /><span>선반에 들어가는 것만</span></label>
+      </div>
+    </div>
+
+    <div class="catalog-controls">
+      <div class="chip-row" id="filters" role="group" aria-label="카테고리 필터">
+        <button class="chip is-on" type="button" data-filter="all">전체</button>
+        <button class="chip" type="button" data-filter="1000">천원템</button>
+        <button class="chip" type="button" data-filter="팬트리">팬트리</button>
+        <button class="chip" type="button" data-filter="브릭스">브릭스</button>
+        <button class="chip" type="button" data-filter="메쉬">메쉬</button>
+        <button class="chip" type="button" data-filter="냉장고">냉장고·주방</button>
+        <button class="chip" type="button" data-filter="직사각">직사각</button>
+        <button class="chip" type="button" data-filter="리빙박스">리빙박스</button>
+      </div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16.5 16.5 4 4" stroke="currentColor" stroke-width="2"/></svg>
+        <input id="searchInput" type="search" placeholder="품명 · 품번으로 찾기" aria-label="상품 검색" />
+      </div>
+    </div>
+
+    <p class="result-line"><span id="resultSummary">불러오는 중…</span></p>
+
+    <ul class="card-grid" id="cardGrid"></ul>
+    <p class="empty-result" id="emptyResult" hidden>조건에 맞는 바구니가 없어요. 필터를 풀거나 선반 규격을 키워보세요.</p>
+  </section>
+
+  <footer class="site-foot">
+    <p>규격·가격은 다이소몰 표기 기준(2026-11-22 수집)이며, 매장 실측과 오차가 있을 수 있어요. 구매 전 상품 페이지에서 확인해 주세요.</p>
+    <p class="foot-small">다이소몰 상품 데이터 · 비공식 팬메이드 도구</p>
+  </footer>
+</main>
+
+<!-- 모바일 요약 바 -->
+<div class="mini-bar" id="miniBar" hidden>
+  <div class="mini-info"><b><span id="miniCount">0</span>개</b><span id="miniTotal">0원</span></div>
+  <div class="mini-actions">
+    <button type="button" class="ghost-btn" id="miniPreview">미리보기</button>
+    <button type="button" class="mini-primary" id="miniReceipt">영수증</button>
+  </div>
+</div>
+
+<!-- 선택 툴바 -->
+<div class="sel-toolbar" id="selToolbar" hidden role="toolbar" aria-label="선택한 바구니 편집">
+  <div class="sel-info">
+    <b id="selName">바구니</b>
+    <span id="selDims">0 × 0 × 0</span>
+  </div>
+  <div class="sel-actions">
+    <button type="button" data-act="rotate" title="가로·세로를 90도 돌리기">돌리기</button>
+    <button type="button" data-act="lay" title="높이와 깊이를 바꿔 눕히기">눕히기</button>
+    <button type="button" data-act="dup" title="앞뒤 2줄로 한 개 더">앞뒤 2줄</button>
+    <button type="button" data-act="remove" class="danger">제거</button>
+    <button type="button" data-act="close" class="close" aria-label="툴바 닫기">✕</button>
+  </div>
+</div>
+
+<!-- 영수증 모달 -->
+<div class="modal" id="receiptModal" hidden>
+  <div class="modal-backdrop" data-close="receiptModal"></div>
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
+    <div class="modal-head">
+      <h3 id="receiptTitle">품번 영수증</h3>
+      <button class="icon-btn" type="button" data-close="receiptModal" aria-label="닫기">✕</button>
+    </div>
+    <div class="receipt-scroll">
+      <canvas id="receiptCanvas" width="720" height="900" aria-label="영수증 미리보기"></canvas>
+    </div>
+    <div class="modal-foot">
+      <button class="primary-btn" id="downloadBtn" type="button">PNG로 저장</button>
+      <button class="ghost-btn" type="button" data-close="receiptModal">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 데이터 안내 모달 -->
+<div class="modal" id="aboutModal" hidden>
+  <div class="modal-backdrop" data-close="aboutModal"></div>
+  <div class="modal-panel small" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="modal-head">
+      <h3 id="aboutTitle">데이터 안내</h3>
+      <button class="icon-btn" type="button" data-close="aboutModal" aria-label="닫기">✕</button>
+    </div>
+    <div class="about-body" id="aboutBody"></div>
+    <div class="modal-foot">
+      <button class="ghost-btn" type="button" data-close="aboutModal">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="data/baskets.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
