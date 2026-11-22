@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>이케아 수납·선반 미리보기</title>
+<meta name="description" content="칼락스·빌리·베스토·팍스 같은 이케아 수납칸 치수를 넣으면 딱 맞는 이케아 수납함을 추천합니다. 3면 미리보기로 배치를 확인하고 제품번호가 담긴 쇼핑 리스트를 저장하세요." />
+<meta name="theme-color" content="#F7F7F5" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230058A3'/%3E%3Cellipse cx='32' cy='34' rx='24' ry='14' fill='%23FFDB00'/%3E%3Ctext x='32' y='40' font-family='Helvetica,Arial' font-size='20' font-weight='bold' text-anchor='middle' fill='%230058A3'%3EIKEA%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<a class="skip" href="#catalog">상품 목록으로 건너뛰기</a>
+
+<header class="site-head">
+  <div class="wrap head-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">IKEA</span>
+      <div>
+        <h1>이케아 수납·선반 미리보기</h1>
+        <p class="tagline">칼락스·빌리 칸 치수만 넣으면, 딱 맞는 이케아 수납함을 골라드려요</p>
+      </div>
+    </div>
+    <div class="head-meta">
+      <span class="pill">이케아 코리아 실데이터 · <b id="dataCount">0</b>종</span>
+      <button class="ghost-btn" id="openAbout" type="button">데이터 안내</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- 1. 수납칸 규격 -->
+  <section class="card shelf-card" aria-labelledby="shelfTitle">
+    <div class="card-head">
+      <h2 id="shelfTitle"><span class="step">1</span> 수납칸 규격</h2>
+      <p class="hint">가구를 고르면 안쪽 치수가 자동으로 들어갑니다. 직접 재었으면 아래에 넣어주세요.</p>
+    </div>
+
+    <div class="preset-scroll" role="group" aria-label="이케아 가구 프리셋" id="presetRow">
+      <button class="preset" type="button" data-preset="kallax1">
+        <b>칼락스 1칸</b><span>KALLAX · 33×39×33</span>
+      </button>
+      <button class="preset" type="button" data-preset="billy80">
+        <b>빌리 80폭</b><span>BILLY · 76×26×30</span>
+      </button>
+      <button class="preset" type="button" data-preset="billy40">
+        <b>빌리 40폭</b><span>BILLY · 36×26×30</span>
+      </button>
+      <button class="preset" type="button" data-preset="besta1">
+        <b>베스토 1칸</b><span>BESTÅ · 56×36×38</span>
+      </button>
+      <button class="preset" type="button" data-preset="pax50">
+        <b>팍스 50폭</b><span>PAX · 46×58×35</span>
+      </button>
+      <button class="preset" type="button" data-preset="pax100">
+        <b>팍스 100폭</b><span>PAX · 96×58×35</span>
+      </button>
+      <button class="preset" type="button" data-preset="ivar30">
+        <b>이바르 80×30</b><span>IVAR · 83×30×40</span>
+      </button>
+      <button class="preset" type="button" data-preset="ivar50">
+        <b>이바르 80×50</b><span>IVAR · 83×50×40</span>
+      </button>
+      <button class="preset" type="button" data-preset="trofast">
+        <b>트로파스트 프레임</b><span>TROFAST · 42×30×36</span>
+      </button>
+    </div>
+
+    <div class="shelf-inputs">
+      <label class="field">
+        <span class="field-label">폭 <em>가로</em></span>
+        <span class="input-wrap"><input id="shelfW" type="number" inputmode="decimal" min="10" max="300" step="0.5" value="33" /><span class="unit">cm</span></span>
+      </label>
+      <label class="field">
+        <span class="field-label">안쪽 깊이 <em>앞뒤</em></span>
+        <span class="input-wrap"><input id="shelfD" type="number" inputmode="decimal" min="8" max="150" step="0.5" value="39" /><span class="unit">cm</span></span>
+      </label>
+      <label class="field">
+        <span class="field-label">높이 <em>칸 높이</em></span>
+        <span class="input-wrap"><input id="shelfH" type="number" inputmode="decimal" min="8" max="150" step="0.5" value="33" /><span class="unit">cm</span></span>
+      </label>
+    </div>
+  </section>
+
+  <!-- 2. 미리보기 -->
+  <section class="card preview-card" aria-labelledby="previewTitle">
+    <div class="card-head row-head">
+      <h2 id="previewTitle"><span class="step">2</span> 수납칸 미리보기</h2>
+      <div class="view-tabs" role="tablist" aria-label="보는 방향">
+        <button role="tab" class="tab is-on" data-view="front" aria-selected="true">앞에서</button>
+        <button role="tab" class="tab" data-view="side" aria-selected="false">옆에서</button>
+        <button role="tab" class="tab" data-view="top" aria-selected="false">위에서</button>
+      </div>
+    </div>
+
+    <div class="stage-tools">
+      <div class="stage-note" id="stageNote">수납함을 끌어 옮기고, 위에 쌓아보세요.</div>
+      <div class="tool-group">
+        <button class="ghost-btn" id="undoBtn" type="button" disabled>되돌리기</button>
+        <button class="ghost-btn" id="clearBtn" type="button" disabled>전부 빼기</button>
+      </div>
+    </div>
+
+    <div class="stage-wrap">
+      <div class="stage" id="stage" data-view="front" aria-label="수납칸 배치 미리보기">
+        <div class="stage-shelf" id="shelfBox"><div class="stage-grid" id="stageGrid"></div></div>
+        <div class="stage-empty" id="stageEmpty">
+          <p>아직 칸이 비어 있어요</p>
+          <span>아래 추천에서 <b>칸에 담기</b>를 눌러보세요</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats" id="stats" aria-live="polite">
+      <div class="stat" title="바닥에 놓인 수납함 중 가장 멀리까지 쓴 폭을 기준으로 계산합니다"><span class="stat-label">남은 폭</span><b id="statWidth">33</b><span class="stat-unit">cm</span></div>
+      <div class="stat" title="가장 깊은 수납함을 기준으로 남는 앞뒤 공간입니다. 앞뒤 2줄을 쓰면 0cm가 됩니다"><span class="stat-label">깊이 여유</span><b id="statDepth">39</b><span class="stat-unit">cm</span></div>
+      <div class="stat"><span class="stat-label">개수 · 합계</span><b id="statCount">0</b><span class="stat-unit">개 · <span id="statTotal">0</span>원</span></div>
+      <div class="stat" title="쌓은 것까지 포함해 가장 높이 올라간 지점입니다"><span class="stat-label">가장 높은 곳</span><b id="statTop">0</b><span class="stat-unit">cm · 위로 <span id="statLeft">33</span>cm</span></div>
+    </div>
+
+    <div class="stage-actions">
+      <button class="primary-btn" id="receiptOpenBtn" type="button" disabled>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 4h16v16H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" stroke-width="2"/></svg>
+        쇼핑 리스트 만들기
+      </button>
+    </div>
+  </section>
+
+  <!-- 3. 추천 카탈로그 -->
+  <section class="card catalog-card" id="catalog" aria-labelledby="catalogTitle">
+    <div class="card-head row-head">
+      <h2 id="catalogTitle"><span class="step">3</span> 맞춤 추천</h2>
+      <div class="sort-wrap">
+        <label class="toggle"><input type="checkbox" id="onlyFit" checked /><span>칸에 들어가는 것만</span></label>
+      </div>
+    </div>
+
+    <div class="catalog-controls">
+      <div class="chip-row" id="filters" role="group" aria-label="시리즈 필터"></div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16.5 16.5 4 4" stroke="currentColor" stroke-width="2"/></svg>
+        <input id="searchInput" type="search" placeholder="제품명 · 제품번호(805.268.76) 검색" aria-label="상품 검색" />
+      </div>
+    </div>
+
+    <p class="result-line"><span id="resultSummary">불러오는 중…</span></p>
+
+    <ul class="card-grid" id="cardGrid"></ul>
+    <p class="empty-result" id="emptyResult" hidden>조건에 맞는 수납함이 없어요. 필터를 풀거나 칸 규격을 키워보세요.</p>
+  </section>
+
+  <footer class="site-foot">
+    <p>규격·가격은 이케아 코리아(ikea.com/kr/ko) 제품 페이지 표기 기준(2026-11-22 수집)이며, 매장 실측과 1~2cm 차이가 날 수 있어요. 구매 전 제품 페이지에서 확인해 주세요.</p>
+    <p class="foot-small">이케아 코리아 상품 데이터 · 비공식 팬메이드 도구 (IKEA와 무관)</p>
+  </footer>
+</main>
+
+<!-- 모바일 요약 바 -->
+<div class="mini-bar" id="miniBar" hidden>
+  <div class="mini-info"><b><span id="miniCount">0</span>개</b><span id="miniTotal">0원</span></div>
+  <div class="mini-actions">
+    <button type="button" class="ghost-btn" id="miniPreview">미리보기</button>
+    <button type="button" class="mini-primary" id="miniReceipt">리스트</button>
+  </div>
+</div>
+
+<!-- 선택 툴바 -->
+<div class="sel-toolbar" id="selToolbar" hidden role="toolbar" aria-label="선택한 수납함 편집">
+  <div class="sel-info">
+    <b id="selName">수납함</b>
+    <span id="selDims">0 × 0 × 0</span>
+  </div>
+  <div class="sel-actions">
+    <button type="button" data-act="rotate" title="가로·세로를 90도 돌리기">돌리기</button>
+    <button type="button" data-act="lay" title="높이와 깊이를 바꿔 눕히기">눕히기</button>
+    <button type="button" data-act="dup" title="앞뒤 2줄로 한 개 더">앞뒤 2줄</button>
+    <button type="button" data-act="remove" class="danger">제거</button>
+    <button type="button" data-act="close" class="close" aria-label="툴바 닫기">✕</button>
+  </div>
+</div>
+
+<!-- 쇼핑 리스트 모달 -->
+<div class="modal" id="receiptModal" hidden>
+  <div class="modal-backdrop" data-close="receiptModal"></div>
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
+    <div class="modal-head">
+      <h3 id="receiptTitle">이케아 쇼핑 리스트</h3>
+      <button class="icon-btn" type="button" data-close="receiptModal" aria-label="닫기">✕</button>
+    </div>
+    <div class="receipt-scroll">
+      <canvas id="receiptCanvas" width="760" height="900" aria-label="쇼핑 리스트 미리보기"></canvas>
+    </div>
+    <div class="modal-foot">
+      <button class="primary-btn" id="downloadBtn" type="button">PNG로 저장</button>
+      <button class="ghost-btn" type="button" data-close="receiptModal">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 데이터 안내 모달 -->
+<div class="modal" id="aboutModal" hidden>
+  <div class="modal-backdrop" data-close="aboutModal"></div>
+  <div class="modal-panel small" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="modal-head">
+      <h3 id="aboutTitle">데이터 안내</h3>
+      <button class="icon-btn" type="button" data-close="aboutModal" aria-label="닫기">✕</button>
+    </div>
+    <div class="about-body" id="aboutBody"></div>
+    <div class="modal-foot">
+      <button class="ghost-btn" type="button" data-close="aboutModal">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="data/items.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
