@@ -410,42 +410,137 @@
   /* ---------------- stage rendering ---------------- */
   var stageEl, shelfBox;
 
+  /* 화면 px ↔ 수납칸 cm 변환 정보. 모든 보기에서 가로·세로 배율이 같다(1cm = scale px). */
+  var view = { W: 0, H: 0, scale: 1, originX: 0, originY: 0, boxW: 0, boxH: 0 };
+
+  function viewDims() {
+    var S = state.shelf;
+    if (state.view === 'top') return { w: S.w, h: S.d };
+    if (state.view === 'side') return { w: S.d, h: S.h };
+    return { w: S.w, h: S.h };
+  }
+
+  /* 무대 높이를 정하고, 치수 라벨 자리를 뺀 영역 안에 수납칸을 한 배율로 꼭 맞춰 가운데 놓는다 */
   function layout() {
     var st = stageEl;
-    var W = st.clientWidth || 600;
-    var S = state.shelf;
-    var ratio = state.view === 'top' ? (S.d / S.w) : (S.h / S.w);
-    var hpx = clamp(W * ratio, 170, 420);
-    st.style.height = Math.round(hpx) + 'px';
-    return { W: W, H: hpx };
+    var W = Math.max(160, st.clientWidth || 600);
+    var v = viewDims();
+    var narrow = W < 460;
+    var padL = narrow ? 40 : 52;   // 왼쪽 세로 치수 라벨
+    var padR = narrow ? 18 : 26;
+    var padT = narrow ? 28 : 34;   // 위 가로 치수 라벨
+    var padB = narrow ? 34 : 42;   // 아래 설명 라벨 + 받침대
+
+    var availW = Math.max(40, W - padL - padR);
+    var idealH = availW * (v.h / v.w);
+    var H = Math.round(clamp(idealH + padT + padB, narrow ? 190 : 240, 470));
+    st.style.height = H + 'px';
+
+    var availH = Math.max(20, H - padT - padB);
+    var scale = Math.min(availW / v.w, availH / v.h);
+    var boxW = v.w * scale, boxH = v.h * scale;
+
+    view = {
+      W: W, H: H, scale: scale,
+      originX: padL + (availW - boxW) / 2,
+      originY: padT + (availH - boxH) / 2,
+      boxW: boxW, boxH: boxH
+    };
+    return view;
+  }
+
+  /* 수납함 한 개를 현재 보기의 좌표계에 그린다(그리기·드래그 미리보기가 같은 함수를 쓴다) */
+  function positionNode(node, p) {
+    var S = state.shelf, dm = dimsOf(p), s = view.scale;
+    var left, top, w, h;
+    if (state.view === 'side') {
+      var zs = p.row === 0 ? 0 : Math.max(0, S.d - dm.d);
+      left = view.originX + zs * s;
+      w = dm.d * s;
+      h = dm.h * s;
+      top = view.originY + view.boxH - (p.y + dm.h) * s;
+    } else if (state.view === 'top') {
+      var zt = p.row === 0 ? 0 : Math.max(0, S.d - dm.d);
+      left = view.originX + p.x * s;
+      w = dm.w * s;
+      h = dm.d * s;
+      top = view.originY + zt * s;
+    } else {
+      left = view.originX + p.x * s;
+      w = dm.w * s;
+      h = dm.h * s;
+      top = view.originY + view.boxH - (p.y + dm.h) * s;
+    }
+    node.style.left = left + 'px';
+    node.style.top = top + 'px';
+    node.style.width = Math.max(4, w - 1) + 'px';
+    node.style.height = Math.max(4, h - 1) + 'px';
+    return { w: w, h: h };
   }
 
   function renderStage() {
     if (!stageEl) return;
     stageEl.setAttribute('data-view', state.view);
-    var size = layout();
     var S = state.shelf;
+    var v = layout();
 
     shelfBox.textContent = '';
 
-    var px = size.W / S.w;
-    var py = (size.H - 10) / (state.view === 'top' ? S.d : S.h);
-    // 옆에서 보기는 깊이가 가로축이라, 실제 비율을 유지한 채 가운데에 놓는다
-    var originX = state.view === 'side' ? Math.max(0, (size.W - S.d * px) / 2) : 0;
-    var spanX = state.view === 'side' ? S.d * px : size.W;
+    // 수납칸 바깥 프레임
+    var frame = el('div', 'shelf-frame');
+    frame.style.left = v.originX + 'px';
+    frame.style.top = v.originY + 'px';
+    frame.style.width = v.boxW + 'px';
+    frame.style.height = v.boxH + 'px';
+    shelfBox.appendChild(frame);
 
     if (state.view !== 'top') {
+      var wallL = el('div', 'shelf-side');
+      wallL.style.left = (v.originX - 6) + 'px';
+      wallL.style.top = (v.originY - 2) + 'px';
+      wallL.style.height = (v.boxH + 10) + 'px';
+      var wallR = el('div', 'shelf-side right');
+      wallR.style.left = (v.originX + v.boxW) + 'px';
+      wallR.style.top = (v.originY - 2) + 'px';
+      wallR.style.height = (v.boxH + 10) + 'px';
+      shelfBox.appendChild(wallL);
+      shelfBox.appendChild(wallR);
+
       var base = el('div', 'shelf-base');
-      base.style.bottom = '0px';
-      base.style.left = originX + 'px';
-      base.style.right = 'auto';
-      base.style.width = spanX + 'px';
+      base.style.left = (v.originX - 6) + 'px';
+      base.style.top = (v.originY + v.boxH) + 'px';
+      base.style.width = (v.boxW + 12) + 'px';
       shelfBox.appendChild(base);
-      var l = el('div', 'shelf-side'); l.style.left = originX + 'px';
-      var r = el('div', 'shelf-side right');
-      r.style.right = 'auto'; r.style.left = (originX + spanX - 6) + 'px';
-      shelfBox.appendChild(l); shelfBox.appendChild(r);
     }
+
+    // 치수 라벨 — 위(가로), 왼쪽(세로), 아래(설명)
+    var topDim = el('div', 'dim dim-top');
+    topDim.style.left = v.originX + 'px';
+    topDim.style.width = v.boxW + 'px';
+    topDim.style.top = Math.max(2, v.originY - 30) + 'px';
+    topDim.appendChild(el('b', null,
+      state.view === 'side' ? '깊이 ' + fmt(S.d) + 'cm' : '폭 ' + fmt(S.w) + 'cm'));
+    topDim.appendChild(el('span', 'dim-rule'));
+    shelfBox.appendChild(topDim);
+
+    var leftDim = el('div', 'dim dim-left');
+    leftDim.style.left = Math.max(2, v.originX - 32) + 'px';
+    leftDim.style.top = v.originY + 'px';
+    leftDim.style.height = v.boxH + 'px';
+    leftDim.appendChild(el('b', null,
+      state.view === 'top' ? '깊이 ' + fmt(S.d) + 'cm' : '높이 ' + fmt(S.h) + 'cm'));
+    shelfBox.appendChild(leftDim);
+
+    var bottomDim = el('div', 'dim dim-bottom');
+    bottomDim.style.left = (v.originX - 24) + 'px';
+    bottomDim.style.width = (v.boxW + 48) + 'px';
+    bottomDim.style.top = (v.originY + v.boxH + (state.view === 'top' ? 10 : 18)) + 'px';
+    bottomDim.textContent = state.view === 'front'
+      ? '안쪽 깊이 ' + fmt(S.d) + 'cm · 바닥에서 본 정면'
+      : state.view === 'side'
+        ? '폭 ' + fmt(S.w) + 'cm · 옆에서 본 단면'
+        : '높이 ' + fmt(S.h) + 'cm · 위에서 내려다본 평면';
+    shelfBox.appendChild(bottomDim);
 
     var order = state.placed.slice().sort(function (a, b) {
       if (a.row !== b.row) return b.row - a.row;
@@ -458,40 +553,27 @@
       var dm = dimsOf(p);
       var node = el('div', 'item' + (p.row === 1 ? ' is-back' : '') + (state.sel === p.uid ? ' is-sel' : ''));
       node.setAttribute('data-uid', p.uid);
+      node.setAttribute('title', it.name);
 
-      var left, top, width, height;
-      if (state.view === 'front') {
-        left = p.x * px;
-        width = dm.w * px;
-        height = dm.h * py;
-        top = (size.H - 10) - (p.y + dm.h) * py;
-      } else if (state.view === 'side') {
-        var z = p.row === 0 ? 0 : Math.max(0, S.d - dm.d);
-        left = originX + z * px;
-        width = dm.d * px;
-        height = dm.h * py;
-        top = (size.H - 10) - (p.y + dm.h) * py;
-      } else {
-        left = p.x * px;
-        width = dm.w * px;
-        height = dm.d * py;
-        top = (p.row === 0 ? 0 : Math.max(0, S.d - dm.d)) * py;
-        node.style.zIndex = String(10 + Math.round(p.y * 2));
-      }
-
-      node.style.left = left + 'px';
-      node.style.top = top + 'px';
-      node.style.width = Math.max(6, width - 1) + 'px';
-      node.style.height = Math.max(6, height - 1) + 'px';
+      var box = positionNode(node, p);
       if (state.sel === p.uid) node.style.zIndex = '40';
+      else if (state.view === 'top') node.style.zIndex = String(10 + Math.round(p.y * 2));
 
-      if (width > 46 && height > 30) {
-        node.appendChild(el('span', 'it-name', it.seriesKo || it.series || it.name));
-        if (state.view !== 'side' && height > 52) {
+      var label = it.seriesKo || it.series || it.name;
+      if (box.w > 60 && box.h >= 12) {
+        // 얇은 트레이도 이름이 보이게: 한 줄 축소 라벨
+        node.classList.add('is-thin');
+        node.appendChild(el('span', 'it-name', label));
+      } else if (box.w > 60 && box.h >= 8) {
+        node.classList.add('is-thin', 'is-micro');
+        node.appendChild(el('span', 'it-name', label));
+      } else if (box.w > 46 && box.h > 30) {
+        node.appendChild(el('span', 'it-name', label));
+        if (state.view !== 'side' && box.h > 52) {
           node.appendChild(el('span', 'it-dims', fmt(dm.w) + '×' + fmt(dm.d) + '×' + fmt(dm.h)));
         }
       }
-      if (p.row === 1 && width > 30 && height > 24) node.classList.add('is-dup');
+      if (p.row === 1 && box.w > 30 && box.h > 24) node.classList.add('is-dup');
 
       shelfBox.appendChild(node);
     });
@@ -642,14 +724,11 @@
       syncToolbar();
     }
 
-    var st = stageEl.getBoundingClientRect();
-    var S = state.shelf;
     drag = {
       uid: p.uid,
       startX: e.clientX, startY: e.clientY,
       ox: p.x, oy: p.y, orow: p.row,
-      px: st.width / S.w,
-      py: (st.height - 10) / (state.view === 'top' ? S.d : S.h),
+      scale: view.scale,
       moved: false,
       node: node,
       before: JSON.stringify(state.placed)
@@ -663,8 +742,9 @@
     var p = null;
     state.placed.forEach(function (o) { if (o.uid === drag.uid) p = o; });
     if (!p) return;
-    var dx = (e.clientX - drag.startX) / drag.px;
-    var dy = (e.clientY - drag.startY) / drag.py;
+    var s = drag.scale || view.scale || 1;
+    var dx = (e.clientX - drag.startX) / s;
+    var dy = (e.clientY - drag.startY) / s;
     if (Math.abs(dx) > 0.2 || Math.abs(dy) > 0.2) drag.moved = true;
     if (!drag.moved) return;
 
@@ -688,19 +768,7 @@
   function paintDragging(p) {
     var node = stageEl.querySelector('.item[data-uid="' + p.uid + '"]');
     if (!node) return;
-    var S = state.shelf, dm = dimsOf(p);
-    var st = stageEl.getBoundingClientRect();
-    var px = st.width / S.w;
-    var py = (st.height - 10) / (state.view === 'top' ? S.d : S.h);
-    if (state.view === 'front') {
-      node.style.left = (p.x * px) + 'px';
-      node.style.top = ((st.height - 10) - (p.y + dm.h) * py) + 'px';
-    } else if (state.view === 'top') {
-      node.style.left = (p.x * px) + 'px';
-      node.style.top = ((p.row === 0 ? 0 : Math.max(0, S.d - dm.d)) * py) + 'px';
-    } else {
-      node.style.top = ((st.height - 10) - (p.y + dm.h) * py) + 'px';
-    }
+    positionNode(node, p);
   }
 
   function onPointerUp() {

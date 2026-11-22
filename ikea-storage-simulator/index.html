@@ -111,6 +111,21 @@
       </div>
     </div>
 
+    <!-- 선택 툴바 (무대 바로 아래 · 통계 위) -->
+    <div class="sel-toolbar" id="selToolbar" hidden role="toolbar" aria-label="선택한 수납함 편집">
+      <div class="sel-info">
+        <b id="selName">수납함</b>
+        <span id="selDims">0 × 0 × 0</span>
+      </div>
+      <div class="sel-actions">
+        <button type="button" data-act="rotate" title="가로·세로를 90도 돌리기">돌리기</button>
+        <button type="button" data-act="lay" title="높이와 깊이를 바꿔 눕히기">눕히기</button>
+        <button type="button" data-act="dup" title="앞뒤 2줄로 한 개 더">앞뒤 2줄</button>
+        <button type="button" data-act="remove" class="danger">제거</button>
+        <button type="button" data-act="close" class="close" aria-label="툴바 닫기">✕</button>
+      </div>
+    </div>
+
     <div class="stats" id="stats" aria-live="polite">
       <div class="stat" title="바닥에 놓인 수납함 중 가장 멀리까지 쓴 폭을 기준으로 계산합니다"><span class="stat-label">남은 폭</span><b id="statWidth">33</b><span class="stat-unit">cm</span></div>
       <div class="stat" title="가장 깊은 수납함을 기준으로 남는 앞뒤 공간입니다. 앞뒤 2줄을 쓰면 0cm가 됩니다"><span class="stat-label">깊이 여유</span><b id="statDepth">39</b><span class="stat-unit">cm</span></div>
@@ -161,21 +176,6 @@
   <div class="mini-actions">
     <button type="button" class="ghost-btn" id="miniPreview">미리보기</button>
     <button type="button" class="mini-primary" id="miniReceipt">리스트</button>
-  </div>
-</div>
-
-<!-- 선택 툴바 -->
-<div class="sel-toolbar" id="selToolbar" hidden role="toolbar" aria-label="선택한 수납함 편집">
-  <div class="sel-info">
-    <b id="selName">수납함</b>
-    <span id="selDims">0 × 0 × 0</span>
-  </div>
-  <div class="sel-actions">
-    <button type="button" data-act="rotate" title="가로·세로를 90도 돌리기">돌리기</button>
-    <button type="button" data-act="lay" title="높이와 깊이를 바꿔 눕히기">눕히기</button>
-    <button type="button" data-act="dup" title="앞뒤 2줄로 한 개 더">앞뒤 2줄</button>
-    <button type="button" data-act="remove" class="danger">제거</button>
-    <button type="button" data-act="close" class="close" aria-label="툴바 닫기">✕</button>
   </div>
 </div>
 

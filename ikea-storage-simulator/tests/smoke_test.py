@@ -6,7 +6,9 @@
   2. '칸에 담기' 클릭 → 배치/통계/저장이 맞게 동작한다
   3. 이케아 가구 프리셋 · 시리즈 필터가 규격과 목록을 바꾼다
   4. 되돌리기·전부 빼기가 상태를 되돌린다
-  5. 쇼핑 리스트(제품번호 영수증) 캔버스 그리기가 예외 없이 끝난다
+  5. 미리보기가 가로·세로 같은 배율(프레임 비율)이고 치수 라벨·얇은 트레이 라벨이 그려진다
+  6. 선택 툴바가 미리보기 카드 안(통계 위)에 있다
+  7. 쇼핑 리스트(제품번호 영수증) 캔버스 그리기가 예외 없이 끝난다
 """
 import json
 import os
@@ -425,6 +427,85 @@ def main():
   } else {
     ok('좁은 칸 쌓기', false, 'no item');
   }
+
+  // ---- 미리보기 프레임 · 치수 라벨 · 균일 배율 ----
+  fire(document.getElementById('clearBtn'), 'click');
+  fire(document.querySelector('[data-preset="billy80"]'), 'click');
+  function txtOf(n){ var s = n ? (n._text || '') : ''; if (n) (n.children||[]).forEach(function(c){ if (c.tagName !== '#text') s += txtOf(c); else s += (c._text || ''); }); return s; }
+  function fireWin(type, ev){
+    var list = __handlers['win:'+type] || [];
+    ev = ev || {};
+    if (!ev.preventDefault) ev.preventDefault = function(){};
+    for (var i=0;i<list.length;i++) list[i].call(window, ev);
+  }
+  var sBox = document.getElementById('shelfBox');
+  var frame = sBox.querySelector('.shelf-frame');
+  ok('수납칸 프레임 표시', !!frame);
+  var fw = parseFloat(frame.style.width), fh = parseFloat(frame.style.height);
+  ok('프레임 비율 = 칸 비율(76:30)', Math.abs(fw / fh - 76 / 30) < 0.02, fw + 'x' + fh);
+  var dTop = sBox.querySelector('.dim-top');
+  var dLeft = sBox.querySelector('.dim-left');
+  var dBot = sBox.querySelector('.dim-bottom');
+  ok('위 폭 라벨', txtOf(dTop) === '폭 76cm', txtOf(dTop));
+  ok('왼쪽 높이 라벨', txtOf(dLeft) === '높이 30cm', txtOf(dLeft));
+  ok('아래 설명 라벨', txtOf(dBot) === '안쪽 깊이 26cm · 바닥에서 본 정면', txtOf(dBot));
+
+  // 옆에서 보기: 축이 바뀌어도 같은 배율
+  fire(document.querySelector('.tab[data-view="side"]'), 'click');
+  ok('옆에서 위 라벨', txtOf(sBox.querySelector('.dim-top')) === '깊이 26cm', txtOf(sBox.querySelector('.dim-top')));
+  ok('옆에서 아래 라벨', txtOf(sBox.querySelector('.dim-bottom')) === '폭 76cm · 옆에서 본 단면', txtOf(sBox.querySelector('.dim-bottom')));
+  var fSide = sBox.querySelector('.shelf-frame');
+  ok('옆에서 프레임 비율(26:30)',
+     Math.abs(parseFloat(fSide.style.width) / parseFloat(fSide.style.height) - 26 / 30) < 0.02,
+     fSide.style.width + 'x' + fSide.style.height);
+  fire(document.querySelector('.tab[data-view="top"]'), 'click');
+  ok('위에서 왼쪽 깊이 라벨', txtOf(sBox.querySelector('.dim-left')) === '깊이 26cm', txtOf(sBox.querySelector('.dim-left')));
+  ok('위에서 아래 라벨', txtOf(sBox.querySelector('.dim-bottom')) === '높이 30cm · 위에서 내려다본 평면', txtOf(sBox.querySelector('.dim-bottom')));
+  fire(document.querySelector('.tab[data-view="front"]'), 'click');
+
+  // 얇은 트레이(UPPDATERA 55.4x12.6x2.5)도 이름이 보여야 한다
+  var thinCard = null;
+  document.getElementById('cardGrid').children.forEach(function(li){
+    (function walk(n){ (n.children||[]).forEach(function(c){
+      if (c.classList.contains('p-code') && c.textContent === '305.491.68') thinCard = li;
+      walk(c); }); })(li);
+  });
+  ok('우프다테라 카드가 추천에 있음', !!thinCard);
+  var thinNode = null, scale6 = parseFloat(document.querySelector('.shelf-frame').style.width) / 76;
+  if (thinCard) {
+    var addB = null;
+    (function walk(n){ (n.children||[]).forEach(function(c){ if (c.classList.contains('add-btn')) addB = c; walk(c); }); })(thinCard);
+    fire(addB, 'click');
+    thinNode = document.getElementById('shelfBox').querySelector('.item');
+  }
+  ok('얇은 트레이 축소 라벨 클래스', !!thinNode && thinNode.classList.contains('is-thin'));
+  var thinName = thinNode ? thinNode.querySelector('.it-name') : null;
+  ok('얇은 트레이 이름 라벨', !!thinName && thinName.textContent === '우프다테라', thinName ? thinName.textContent : '');
+  ok('얇은 트레이 두께 = 2.5cm × 배율',
+     !!thinNode && Math.abs((parseFloat(thinNode.style.height) + 1) - 2.5 * scale6) < 0.6,
+     thinNode ? thinNode.style.height + ' / scale ' + scale6 : '');
+  ok('얇은 트레이 폭 = 55.4cm × 배율',
+     !!thinNode && Math.abs((parseFloat(thinNode.style.width) + 1) - 55.4 * scale6) < 0.6,
+     thinNode ? thinNode.style.width : '');
+
+  // 드래그가 화면 이동량과 1:1로 맞는다(같은 배율 사용)
+  if (thinNode) {
+    var left0 = parseFloat(thinNode.style.left);
+    fire(thinNode, 'pointerdown', { clientX: 200, clientY: 200, pointerId: 1 });
+    fireWin('pointermove', { clientX: 200 + 10 * scale6, clientY: 200 });
+    var left1 = parseFloat(thinNode.style.left);
+    ok('드래그 10cm = 화면 10×배율', Math.abs((left1 - left0) - 10 * scale6) < 1.2, left0 + ' → ' + left1);
+    fireWin('pointerup', {});
+  }
+
+  // 선택 툴바는 미리보기 카드 안, 통계 위에 인라인으로
+  fire(document.getElementById('shelfBox').querySelector('.item'), 'pointerdown', { clientX: 220, clientY: 220, pointerId: 2 });
+  var bar0 = document.getElementById('selToolbar');
+  var prevCard = bar0.closest('.preview-card');
+  ok('선택 툴바가 미리보기 카드 안', !!prevCard);
+  var kids = prevCard ? prevCard.children : [];
+  var barIdx = kids.indexOf(bar0), statIdx = kids.indexOf(document.getElementById('stats'));
+  ok('선택 툴바가 통계보다 위', barIdx >= 0 && statIdx > barIdx, barIdx + '/' + statIdx);
 
   // 쇼핑 리스트 캔버스
   fire(document.getElementById('clearBtn'), 'click');
